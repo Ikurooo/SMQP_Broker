@@ -1,0 +1,394 @@
+name: DSLab Autograding Workflow
+
+'on':
+  push:
+    branches:
+      - main
+
+permissions:
+  checks: write
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-autograding-tests:
+    runs-on:
+      group: org/auto-grading-runners
+    if: github.actor != 'github-classroom[bot]'
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Test broker_shutdown_successfully
+        id: broker_shutdown_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: broker_shutdown_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicBrokerTest#broker_shutdown_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test exchange_accepts_multiple_connections_successfully
+        id: exchange_accepts_multiple_connections_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: exchange_accepts_multiple_connections_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#exchange_accepts_multiple_connections_successfully
+          timeout: 1
+          max-score: 4
+
+      - name: Test publish_to_fanout_exchange_successfully
+        id: publish_to_fanout_exchange_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_fanout_exchange_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_fanout_exchange_successfully
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_direct_exchange_successfully
+        id: publish_to_direct_exchange_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_direct_exchange_successfully
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_direct_exchange_discards_invalid_message
+        id: publish_to_direct_exchange_discards_invalid_message
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_discards_invalid_message
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_direct_exchange_discards_invalid_message
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_default_exchange_successfully
+        id: publish_to_default_exchange_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_default_exchange_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_default_exchange_successfully
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_default_exchange_discards_invalid_message
+        id: publish_to_default_exchange_discards_invalid_message
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_default_exchange_discards_invalid_message
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_default_exchange_discards_invalid_message
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_direct_exchange_discards_invalid_message_publisher_binds_queue
+        id: publish_to_direct_exchange_discards_invalid_message_publisher_binds_queue
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_discards_invalid_message_publisher_binds_queue
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_direct_exchange_discards_invalid_message_publisher_binds_queue
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_fanout_exchange_subscriber_reconnects_before_activating_subscription
+        id: publish_to_fanout_exchange_subscriber_reconnects_before_activating_subscription
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_fanout_exchange_subscriber_reconnects_before_activating_subscription
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_fanout_exchange_subscriber_reconnects_before_activating_subscription
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_direct_exchange_bound_queue_before_subscription_successfully
+        id: publish_to_direct_exchange_bound_queue_before_subscription_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_bound_queue_before_subscription_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_direct_exchange_bound_queue_before_subscription_successfully
+          timeout: 1
+          max-score: 2
+
+      - name: Test publish_to_direct_exchange_bind_queue_after_publish_unsuccessfully
+        id: publish_to_direct_exchange_bind_queue_after_publish_unsuccessfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_bind_queue_after_publish_unsuccessfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BasicExchangeTest#publish_to_direct_exchange_bind_queue_after_publish_unsuccessfully
+          timeout: 1
+          max-score: 2
+
+      - name: Test broker_protocol_tests
+        id: broker_protocol_tests
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: broker_protocol_tests
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.BrokerProtocolTest#broker_protocol_tests
+          timeout: 1
+          max-score: 5
+
+      - name: Test publish_to_fanout_exchange_and_direct_exchange_successfully
+        id: publish_to_fanout_exchange_and_direct_exchange_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_fanout_exchange_and_direct_exchange_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.MultipleExchangeScenarioTest#publish_to_fanout_exchange_and_direct_exchange_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test three_exchanges_two_queues_successfully
+        id: three_exchanges_two_queues_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: three_exchanges_two_queues_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.MultipleExchangeScenarioTest#three_exchanges_two_queues_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_direct_exchange
+        id: publish_to_direct_exchange
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeConcurrencyTest#publish_to_direct_exchange
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_fanout_exchange
+        id: publish_to_fanout_exchange
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_fanout_exchange
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeConcurrencyTest#publish_to_fanout_exchange
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_fanout_exchange_two_subscribers_successfully
+        id: publish_to_fanout_exchange_two_subscribers_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_fanout_exchange_two_subscribers_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_fanout_exchange_two_subscribers_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_direct_exchange_two_binding_keys_for_single_queue_successfully
+        id: publish_to_direct_exchange_two_binding_keys_for_single_queue_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_two_binding_keys_for_single_queue_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_direct_exchange_two_binding_keys_for_single_queue_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_direct_exchange_single_binding_key_for_two_queues_successfully
+        id: publish_to_direct_exchange_single_binding_key_for_two_queues_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_single_binding_key_for_two_queues_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_direct_exchange_single_binding_key_for_two_queues_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_direct_exchange_only_routes_correct_successfully
+        id: publish_to_direct_exchange_only_routes_correct_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_direct_exchange_only_routes_correct_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_direct_exchange_only_routes_correct_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_topic_exchange_multiple_binding_keys_for_single_queue
+        id: publish_to_topic_exchange_multiple_binding_keys_for_single_queue
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_topic_exchange_multiple_binding_keys_for_single_queue
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_topic_exchange_multiple_binding_keys_for_single_queue
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_topic_exchange_single_binding_key_for_two_queues
+        id: publish_to_topic_exchange_single_binding_key_for_two_queues
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_topic_exchange_single_binding_key_for_two_queues
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_topic_exchange_single_binding_key_for_two_queues
+          timeout: 1
+          max-score: 3
+
+      - name: Test publish_to_topic_exchange_two_subscribers_only_routes_correct_message_successfully
+        id: publish_to_topic_exchange_two_subscribers_only_routes_correct_message_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: publish_to_topic_exchange_two_subscribers_only_routes_correct_message_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.SingleExchangeScenarioTest#publish_to_topic_exchange_two_subscribers_only_routes_correct_message_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test star_pattern_tests
+        id: star_pattern_tests
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: star_pattern_tests
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.TopicExchangePatternTest#star_pattern_tests
+          timeout: 1
+          max-score: 4
+
+      - name: Test hashtag_pattern_tests
+        id: hashtag_pattern_tests
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: hashtag_pattern_tests
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.TopicExchangePatternTest#hashtag_pattern_tests
+          timeout: 1
+          max-score: 4
+
+      - name: Test basic_logic_tests
+        id: basic_logic_tests
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: basic_logic_tests
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.broker.TopicExchangePatternTest#basic_logic_tests
+          timeout: 1
+          max-score: 4
+
+      - name: Test dns_shutdown_successfully
+        id: dns_shutdown_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: dns_shutdown_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.BasicDNSTest#dns_shutdown_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test dns_accepts_multiple_connections_successfully
+        id: dns_accepts_multiple_connections_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: dns_accepts_multiple_connections_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.BasicDNSTest#dns_accepts_multiple_connections_successfully
+          timeout: 1
+          max-score: 4
+
+      - name: Test register_single_domain_successfully
+        id: register_single_domain_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: register_single_domain_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.BasicDNSTest#register_single_domain_successfully
+          timeout: 1
+          max-score: 4
+
+      - name: Test change_entry_successfully
+        id: change_entry_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: change_entry_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.BasicDNSTest#change_entry_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test unregister_single_domain_successfully
+        id: unregister_single_domain_successfully
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: unregister_single_domain_successfully
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.BasicDNSTest#unregister_single_domain_successfully
+          timeout: 1
+          max-score: 3
+
+      - name: Test message_broker_registers_itself_on_startup
+        id: message_broker_registers_itself_on_startup
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: message_broker_registers_itself_on_startup
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.DNSIntegrationTest#message_broker_registers_itself_on_startup
+          timeout: 1
+          max-score: 3
+
+      - name: Test dns_protocol_tests
+        id: dns_protocol_tests
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: dns_protocol_tests
+          setup-command: ''
+          command: mvn test -Dtest=dslab.assignment2.dns.DNSProtocolTest#dns_protocol_tests
+          timeout: 1
+          max-score: 5
+
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          BROKER_SHUTDOWN_SUCCESSFULLY_RESULTS: ${{steps.broker_shutdown_successfully.outputs.result}}
+          EXCHANGE_ACCEPTS_MULTIPLE_CONNECTIONS_SUCCESSFULLY_RESULTS: ${{steps.exchange_accepts_multiple_connections_successfully.outputs.result}}
+          PUBLISH_TO_FANOUT_EXCHANGE_SUCCESSFULLY_RESULTS: ${{steps.publish_to_fanout_exchange_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_SUCCESSFULLY_RESULTS: ${{steps.publish_to_direct_exchange_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_DISCARDS_INVALID_MESSAGE_RESULTS: ${{steps.publish_to_direct_exchange_discards_invalid_message.outputs.result}}
+          PUBLISH_TO_DEFAULT_EXCHANGE_SUCCESSFULLY_RESULTS: ${{steps.publish_to_default_exchange_successfully.outputs.result}}
+          PUBLISH_TO_DEFAULT_EXCHANGE_DISCARDS_INVALID_MESSAGE_RESULTS: ${{steps.publish_to_default_exchange_discards_invalid_message.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_DISCARDS_INVALID_MESSAGE_PUBLISHER_BINDS_QUEUE_RESULTS: ${{steps.publish_to_direct_exchange_discards_invalid_message_publisher_binds_queue.outputs.result}}
+          PUBLISH_TO_FANOUT_EXCHANGE_SUBSCRIBER_RECONNECTS_BEFORE_ACTIVATING_SUBSCRIPTION_RESULTS: ${{steps.publish_to_fanout_exchange_subscriber_reconnects_before_activating_subscription.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_BOUND_QUEUE_BEFORE_SUBSCRIPTION_SUCCESSFULLY_RESULTS: ${{steps.publish_to_direct_exchange_bound_queue_before_subscription_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_BIND_QUEUE_AFTER_PUBLISH_UNSUCCESSFULLY_RESULTS: ${{steps.publish_to_direct_exchange_bind_queue_after_publish_unsuccessfully.outputs.result}}
+          BROKER_PROTOCOL_TESTS_RESULTS: ${{steps.broker_protocol_tests.outputs.result}}
+          PUBLISH_TO_FANOUT_EXCHANGE_AND_DIRECT_EXCHANGE_SUCCESSFULLY_RESULTS: ${{steps.publish_to_fanout_exchange_and_direct_exchange_successfully.outputs.result}}
+          THREE_EXCHANGES_TWO_QUEUES_SUCCESSFULLY_RESULTS: ${{steps.three_exchanges_two_queues_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_RESULTS: ${{steps.publish_to_direct_exchange.outputs.result}}
+          PUBLISH_TO_FANOUT_EXCHANGE_RESULTS: ${{steps.publish_to_fanout_exchange.outputs.result}}
+          PUBLISH_TO_FANOUT_EXCHANGE_TWO_SUBSCRIBERS_SUCCESSFULLY_RESULTS: ${{steps.publish_to_fanout_exchange_two_subscribers_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_TWO_BINDING_KEYS_FOR_SINGLE_QUEUE_SUCCESSFULLY_RESULTS: ${{steps.publish_to_direct_exchange_two_binding_keys_for_single_queue_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_SINGLE_BINDING_KEY_FOR_TWO_QUEUES_SUCCESSFULLY_RESULTS: ${{steps.publish_to_direct_exchange_single_binding_key_for_two_queues_successfully.outputs.result}}
+          PUBLISH_TO_DIRECT_EXCHANGE_ONLY_ROUTES_CORRECT_SUCCESSFULLY_RESULTS: ${{steps.publish_to_direct_exchange_only_routes_correct_successfully.outputs.result}}
+          PUBLISH_TO_TOPIC_EXCHANGE_MULTIPLE_BINDING_KEYS_FOR_SINGLE_QUEUE_RESULTS: ${{steps.publish_to_topic_exchange_multiple_binding_keys_for_single_queue.outputs.result}}
+          PUBLISH_TO_TOPIC_EXCHANGE_SINGLE_BINDING_KEY_FOR_TWO_QUEUES_RESULTS: ${{steps.publish_to_topic_exchange_single_binding_key_for_two_queues.outputs.result}}
+          PUBLISH_TO_TOPIC_EXCHANGE_TWO_SUBSCRIBERS_ONLY_ROUTES_CORRECT_MESSAGE_SUCCESSFULLY_RESULTS: ${{steps.publish_to_topic_exchange_two_subscribers_only_routes_correct_message_successfully.outputs.result}}
+          STAR_PATTERN_TESTS_RESULTS: ${{steps.star_pattern_tests.outputs.result}}
+          HASHTAG_PATTERN_TESTS_RESULTS: ${{steps.hashtag_pattern_tests.outputs.result}}
+          BASIC_LOGIC_TESTS_RESULTS: ${{steps.basic_logic_tests.outputs.result}}
+          DNS_SHUTDOWN_SUCCESSFULLY_RESULTS: ${{steps.dns_shutdown_successfully.outputs.result}}
+          DNS_ACCEPTS_MULTIPLE_CONNECTIONS_SUCCESSFULLY_RESULTS: ${{steps.dns_accepts_multiple_connections_successfully.outputs.result}}
+          REGISTER_SINGLE_DOMAIN_SUCCESSFULLY_RESULTS: ${{steps.register_single_domain_successfully.outputs.result}}
+          CHANGE_ENTRY_SUCCESSFULLY_RESULTS: ${{steps.change_entry_successfully.outputs.result}}
+          UNREGISTER_SINGLE_DOMAIN_SUCCESSFULLY_RESULTS: ${{steps.unregister_single_domain_successfully.outputs.result}}
+          MESSAGE_BROKER_REGISTERS_ITSELF_ON_STARTUP_RESULTS: ${{steps.message_broker_registers_itself_on_startup.outputs.result}}
+          DNS_PROTOCOL_TESTS_RESULTS: ${{steps.dns_protocol_tests.outputs.result}}
+        with:
+          runners: broker_shutdown_successfully,exchange_accepts_multiple_connections_successfully,publish_to_fanout_exchange_successfully,publish_to_direct_exchange_successfully,publish_to_direct_exchange_discards_invalid_message,publish_to_default_exchange_successfully,publish_to_default_exchange_discards_invalid_message,publish_to_direct_exchange_discards_invalid_message_publisher_binds_queue,publish_to_fanout_exchange_subscriber_reconnects_before_activating_subscription,publish_to_direct_exchange_bound_queue_before_subscription_successfully,publish_to_direct_exchange_bind_queue_after_publish_unsuccessfully,broker_protocol_tests,publish_to_fanout_exchange_and_direct_exchange_successfully,three_exchanges_two_queues_successfully,publish_to_direct_exchange,publish_to_fanout_exchange,publish_to_fanout_exchange_two_subscribers_successfully,publish_to_direct_exchange_two_binding_keys_for_single_queue_successfully,publish_to_direct_exchange_single_binding_key_for_two_queues_successfully,publish_to_direct_exchange_only_routes_correct_successfully,publish_to_topic_exchange_multiple_binding_keys_for_single_queue,publish_to_topic_exchange_single_binding_key_for_two_queues,publish_to_topic_exchange_two_subscribers_only_routes_correct_message_successfully,star_pattern_tests,hashtag_pattern_tests,basic_logic_tests,dns_shutdown_successfully,dns_accepts_multiple_connections_successfully,register_single_domain_successfully,change_entry_successfully,unregister_single_domain_successfully,message_broker_registers_itself_on_startup,dns_protocol_tests
