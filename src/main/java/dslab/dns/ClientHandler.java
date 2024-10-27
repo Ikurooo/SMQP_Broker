@@ -1,21 +1,15 @@
 package dslab.dns;
 
-import java.util.List;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
-/**
- * ClientHandler
- */
 public class ClientHandler implements Runnable {
 
     private final Socket clientSocket;
     private BufferedWriter writer;
     private BufferedReader reader;
+    private volatile boolean shouldRun = true;
 
     public ClientHandler(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -23,32 +17,52 @@ public class ClientHandler implements Runnable {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         } catch (IOException e) {
+            System.err.println("error: failed to initialize reader/writer for client.");
         }
     }
 
     @Override
     public void run() {
         this.writeToClient("ok SDP");
+        System.out.println("Client connected.");
 
-        while (!Thread.currentThread().isInterrupted()) {
+        while (shouldRun) {
             String line = this.readFromClient();
 
-            // This guarantees that the line contains at least one word
             if (line == null || line.length() != line.strip().length()) {
-                this.writeToClient("unknown command: " + line);
                 continue;
             }
 
             List<String> command = List.of(line.split(" "));
 
             switch (command.getFirst()) {
-                case "exit" -> this.handleExit(command);
-                case "register" -> this.handleRegister(command);
                 case "unregister" -> this.handleUnregister(command);
+                case "register" -> this.handleRegister(command);
                 case "resolve" -> this.handleResolve(command);
+                case "exit" -> this.handleExit(command);
                 default -> this.writeToClient("unknown command: " + line);
             }
         }
+
+        this.handleExit(List.of("exit"));
+    }
+
+    private void handleExit(List<String> command) {
+        if (command.size() != 1 || !"exit".equals(command.getFirst())) {
+            this.writeToClient("error: invalid arguments.");
+            return;
+        }
+
+        this.writeToClient("ok bye");
+        try {
+            this.reader.close();
+            this.writer.close();
+            this.clientSocket.close();
+        } catch (IOException e) {
+            System.err.println("error: failed closing resources.");
+        }
+
+        shouldRun = false; // Signal the run loop to exit
     }
 
     private void handleResolve(List<String> command) {
@@ -57,7 +71,7 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        String name = command.get(2);
+        String name = command.get(1);
         String ipPort = BrokerConfigWriter.getMapping(name);
 
         if (ipPort == null || ipPort.isBlank()) {
@@ -65,7 +79,7 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        this.writeToClient("ok " + ipPort);
+        this.writeToClient(ipPort);
     }
 
     private void handleUnregister(List<String> command) {
@@ -86,8 +100,8 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        String ipPort = command.get(2);
         String name = command.get(1);
+        String ipPort = command.get(2);
 
         if (ipPort.split(":").length != 2) {
             this.writeToClient("error: invalid ip and port format <ip:port>.");
@@ -98,30 +112,12 @@ public class ClientHandler implements Runnable {
         this.writeToClient("ok");
     }
 
-    private void handleExit(List<String> command) {
-        if (command.size() != 1 || !"exit".equals(command.getFirst())) {
-            this.writeToClient("error: invalid arguments.");
-            return;
-        }
-
-        this.writeToClient("bye");
-        try {
-            this.reader.close();
-            this.writer.close();
-            this.clientSocket.close();
-        } catch (IOException e) {
-            System.err.println("error: failed closing resources.");
-        }
-
-        // TODO: this may cause some unexpected behaviour potentially..
-        Thread.currentThread().interrupt();
-    }
-
     private void writeToClient(String message) {
         try {
             this.writer.write(message + "\n");
+            this.writer.flush();
         } catch (IOException e) {
-            System.err.println("error: falied writing to client.");
+            System.err.println("error: failed writing to client. " + e.getMessage());
         }
     }
 

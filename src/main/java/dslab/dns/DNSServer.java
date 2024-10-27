@@ -33,10 +33,6 @@ public class DNSServer implements IDNSServer {
         while (isRunning) {
             try {
                 Socket clientSocket = serverSocket.accept();
-                if (!isRunning) {
-                    clientSocket.close();
-                    break;
-                }
                 threadPool.submit(new ClientHandler(clientSocket));
             } catch (IOException e) {
                 if (isRunning) {
@@ -60,8 +56,8 @@ public class DNSServer implements IDNSServer {
             System.err.println("Error closing server socket: " + e.getMessage());
         }
 
-        threadPool.shutdown();
         System.out.println("Forcing shutdown of active threads...");
+        threadPool.shutdown();
         System.out.println("DNS server shutdown completed.");
     }
 
