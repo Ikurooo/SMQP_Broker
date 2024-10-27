@@ -2,7 +2,6 @@ package dslab.dns;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
 
 public class ClientHandler implements Runnable {
 
@@ -33,9 +32,9 @@ public class ClientHandler implements Runnable {
                 continue;
             }
 
-            List<String> command = List.of(line.split(" "));
+            String[] command = line.split(" ");
 
-            switch (command.getFirst()) {
+            switch (command[0]) {
                 case "unregister" -> this.handleUnregister(command);
                 case "register" -> this.handleRegister(command);
                 case "resolve" -> this.handleResolve(command);
@@ -44,12 +43,12 @@ public class ClientHandler implements Runnable {
             }
         }
 
-        this.handleExit(List.of("exit"));
+        this.handleExit(new String[]{"exit"});
     }
 
-    private void handleExit(List<String> command) {
-        if (command.size() != 1 || !"exit".equals(command.getFirst())) {
-            this.writeToClient("error: invalid arguments.");
+    private void handleExit(String[] command) {
+        if (command.length != 1 || !"exit".equals(command[0])) {
+            this.writeToClient("error: exit");
             return;
         }
 
@@ -65,13 +64,13 @@ public class ClientHandler implements Runnable {
         shouldRun = false; // Signal the run loop to exit
     }
 
-    private void handleResolve(List<String> command) {
-        if (command.size() != 2 || !"resolve".equals(command.getFirst())) {
-            this.writeToClient("error: invalid arguments.");
+    private void handleResolve(String[] command) {
+        if (command.length != 2 || !"resolve".equals(command[0])) {
+            this.writeToClient("error: resolve <name>");
             return;
         }
 
-        String name = command.get(1);
+        String name = command[1];
         String ipPort = BrokerConfigWriter.getMapping(name);
 
         if (ipPort == null || ipPort.isBlank()) {
@@ -82,26 +81,26 @@ public class ClientHandler implements Runnable {
         this.writeToClient(ipPort);
     }
 
-    private void handleUnregister(List<String> command) {
-        if (command.size() != 2 || !"unregister".equals(command.getFirst())) {
-            this.writeToClient("error: invalid arguments.");
+    private void handleUnregister(String[] command) {
+        if (command.length != 2 || !"unregister".equals(command[0])) {
+            this.writeToClient("error: unregister <name>");
             return;
         }
 
-        String name = command.get(1);
+        String name = command[1];
 
         BrokerConfigWriter.deleteMapping(name);
         this.writeToClient("ok");
     }
 
-    private void handleRegister(List<String> command) {
-        if (command.size() != 3 || !"register".equals(command.getFirst())) {
-            this.writeToClient("error: invalid arguments.");
+    private void handleRegister(String[] command) {
+        if (command.length != 3 || !"register".equals(command[0])) {
+            this.writeToClient("error: register <name> <ip:port>");
             return;
         }
 
-        String name = command.get(1);
-        String ipPort = command.get(2);
+        String name = command[1];
+        String ipPort = command[2];
 
         if (ipPort.split(":").length != 2) {
             this.writeToClient("error: invalid ip and port format <ip:port>.");
