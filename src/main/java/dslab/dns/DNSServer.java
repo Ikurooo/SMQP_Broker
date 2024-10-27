@@ -1,10 +1,12 @@
 package dslab.dns;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.ServerSocket;
+import java.util.stream.Stream;
 
 import dslab.ComponentFactory;
 import dslab.config.DNSServerConfig;
@@ -29,18 +31,20 @@ public class DNSServer implements IDNSServer {
     @Override
     public void run() {
         System.out.println("Server is listening on port: " + this.serverSocket.getLocalPort());
+        Stream.generate(this::tryAcceptClient)
+                .takeWhile(clientSocket -> isRunning)
+                .forEach(clientSocket -> clientSocket.ifPresent(socket ->
+                        threadPool.submit(new ClientHandler(socket)))
+                );
+    }
 
-        while (isRunning) {
-            try {
-                Socket clientSocket = serverSocket.accept();
-                threadPool.submit(new ClientHandler(clientSocket));
-            } catch (IOException e) {
-                if (isRunning) {
-                    System.err.println("Server exception: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
+    private Optional<Socket> tryAcceptClient() {
+        try {
+            return Optional.of(serverSocket.accept());
+        } catch (IOException e) {
+            System.err.println("Server exception: " + e.getMessage());
         }
+        return Optional.empty();
     }
 
     @Override
