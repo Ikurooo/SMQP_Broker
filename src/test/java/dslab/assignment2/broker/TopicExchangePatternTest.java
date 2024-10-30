@@ -72,7 +72,7 @@ public class TopicExchangePatternTest extends BaseSingleBrokerTest {
         afterEach();
 
         beforeEach();
-        single_hashtag_successfully();
+        single_hashtag_unsuccessfully();
         afterEach();
 
         beforeEach();
