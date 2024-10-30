@@ -32,7 +32,7 @@ public class PublisherThread extends Thread {
             int routingKeyIndex = 0;
 
             for (int i = 0; i < messageCount; i++) {
-                String msg = String.format("publish %s %s", routingKeys[(routingKeyIndex++) % routingKeys.length], String.format("Thread %d, Message %d", Thread.currentThread().threadId(), i + 1));
+                String msg = String.format("publish %s %s", routingKeys[(routingKeyIndex++) % routingKeys.length], String.format("Thread:%d,Message:%d", Thread.currentThread().threadId(), i + 1));
                 helper.sendCommandAndReadResponse(msg);
             }
             helper.disconnect();
