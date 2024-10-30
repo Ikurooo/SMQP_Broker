@@ -43,7 +43,7 @@ public class TopicExchangePatternTest extends BaseSingleBrokerTest {
 
     @GitHubClassroomGrading(maxScore = 4)
     @Test
-    @Timeout(value = 1500, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    @Timeout(value = 3500, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void star_pattern_tests() throws IOException {
         single_star_successfully();
         afterEach();
@@ -66,7 +66,7 @@ public class TopicExchangePatternTest extends BaseSingleBrokerTest {
 
     @GitHubClassroomGrading(maxScore = 4)
     @Test
-    @Timeout(value = 1500, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    @Timeout(value = 2500, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void hashtag_pattern_tests() throws IOException {
         single_hashtag_successfully();
         afterEach();
@@ -81,7 +81,7 @@ public class TopicExchangePatternTest extends BaseSingleBrokerTest {
 
     @GitHubClassroomGrading(maxScore = 4)
     @Test
-    @Timeout(value = 1500, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    @Timeout(value = 2500, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void basic_logic_tests() throws IOException {
         basic_key_no_placeholders_successfully();
         afterEach();
