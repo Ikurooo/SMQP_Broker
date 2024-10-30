@@ -185,13 +185,18 @@ public class BrokerProtocolTest extends BaseSingleBrokerTest {
     }
 
     void broker_accepts_multiple_connections_successfully() throws IOException {
-        TelnetClientHelper helper;
+        final int NUM_HELPERS = 100;
+        TelnetClientHelper[] helpers = new TelnetClientHelper[NUM_HELPERS];
         String response;
 
-        for (int i = 0; i < 100; i++) {
-            helper = new TelnetClientHelper(Constants.LOCALHOST, config.port());
-            response = helper.connectAndReadResponse();
+        for (int i = 0; i < NUM_HELPERS; i++) {
+            helpers[i] = new TelnetClientHelper(Constants.LOCALHOST, config.port());
+            response = helpers[i].connectAndReadResponse();
             assertEquals("ok SMQP", response);
+        }
+
+        for (int i = 0; i < NUM_HELPERS; i++) {
+            helpers[i].disconnect();
         }
     }
 
