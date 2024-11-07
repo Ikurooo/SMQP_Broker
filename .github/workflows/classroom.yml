@@ -21,6 +21,19 @@ jobs:
     if: github.actor != 'github-classroom[bot]'
 
     steps:
+      - name: Ensure that Grading Workflow re-runs are cancelled
+        run: |
+          if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+              echo "Re-run detected. Re-runs are not permitted because the results of Grading Workflow re-runs are not transmitted to GitHub Classroom."
+              echo ""
+              echo "Exiting ..."
+              exit 1
+          else
+              echo "This is the first run of the Grading Workflow for commit $GITHUB_SHA"
+              echo ""
+              echo "Proceeding with the Grading Workflow ..."
+          fi
+
       - name: Checkout the repository
         uses: actions/checkout@v4
 
