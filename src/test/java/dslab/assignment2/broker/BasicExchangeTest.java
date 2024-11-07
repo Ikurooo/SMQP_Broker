@@ -26,7 +26,7 @@ public class BasicExchangeTest extends BaseSingleBrokerTest {
     private TelnetClientHelper subscriber;
 
     private static final String exchangeName = "exchange-%s".formatted(Global.SECURE_STRING_GENERATOR.getSecureString());
-    private static final String queueName = "exchange-%s".formatted(Global.SECURE_STRING_GENERATOR.getSecureString());
+    private static final String queueName = "queue-%s".formatted(Global.SECURE_STRING_GENERATOR.getSecureString());
     private static final String key = "key-%s".formatted(Global.SECURE_STRING_GENERATOR.getSecureString());
 
     @Override
