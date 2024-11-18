@@ -146,12 +146,12 @@ public class TopicExchangePatternTest extends BaseSingleBrokerTest {
 
         publisher.sendCommandAndReadResponse(exchange("topic", exchangeName));
 
-        publisher.publish(String.format("%s.com", keyBase), "DOES NOT ARRIVE");
-        publisher.publish(String.format("www.%s", keyBase), "DOES NOT ARRIVE");
-        publisher.publish(String.format("%s", keyBase), "DOES NOT ARRIVE");
-        publisher.publish(String.format(".%s.", keyBase), "DOES NOT ARRIVE");
-        publisher.publish(String.format("at.%s1.com", keyBase), "DOES NOT ARRIVE");
-        publisher.publish("", "DOES NOT ARRIVE");
+        publisher.publish(String.format("%s.com", keyBase), "THIS-SHOULD-BE-DISCARDED");
+        publisher.publish(String.format("www.%s", keyBase), "THIS-SHOULD-BE-DISCARDED");
+        publisher.publish(String.format("%s", keyBase), "THIS-SHOULD-BE-DISCARDED");
+        publisher.publish(String.format(".%s.", keyBase), "THIS-SHOULD-BE-DISCARDED");
+        publisher.publish(String.format("at.%s1.com", keyBase), "THIS-SHOULD-BE-DISCARDED");
+        publisher.publish("", "THIS-SHOULD-BE-DISCARDED");
 
         publisher.publish(String.format("www.%s.com", keyBase), "VERIFICATION-MESSAGE");
 
