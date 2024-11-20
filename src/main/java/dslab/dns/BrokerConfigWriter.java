@@ -1,6 +1,5 @@
 package dslab.dns;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BrokerConfigWriter {
@@ -21,9 +20,5 @@ public class BrokerConfigWriter {
 
     public static String getMapping(String name) {
         return brokerMappings.get(name);
-    }
-
-    public static Map<String, String> getAllMappings() {
-        return Map.copyOf(brokerMappings);
     }
 }
