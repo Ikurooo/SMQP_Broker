@@ -1,30 +1,33 @@
 package dslab.broker;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
 
-class FanoutExchange implements Exchange {
+public class DefaultExchange implements Exchange {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ConcurrentHashMap<String, NamedQueue> qs = new ConcurrentHashMap<>();
     private final String name;
 
-    public FanoutExchange(String name) {
+    public DefaultExchange(String name) {
         this.name = name;
     }
 
     @Override
     public void bind(NamedQueue queue, String routingKey) {
-        this.lock.writeLock().lock();
-        this.qs.put(queue.getName(), queue);
-        this.lock.writeLock().unlock();
+        lock.writeLock().lock();
+        this.qs.putIfAbsent(queue.getName(), queue);
+        lock.writeLock().unlock();
     }
 
     @Override
     public void publish(String routingKey, String message) {
         lock.writeLock().lock();
-        this.qs.forEach((key, value) -> value.enqueue(message));
+        qs.computeIfPresent(routingKey, (key, queue) -> {
+            queue.enqueue(message);
+            return queue;
+        });
         lock.writeLock().unlock();
     }
 

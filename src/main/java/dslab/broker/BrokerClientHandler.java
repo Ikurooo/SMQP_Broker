@@ -13,6 +13,7 @@ public class BrokerClientHandler implements Runnable {
     private final Socket clientSocket;
     private final Map<String, Exchange> exchanges;
     private final Map<String, NamedQueue> queues;
+    private final Exchange defaultExchange;
     private BufferedWriter writer;
     private BufferedReader reader;
     private NamedQueue queue;
@@ -20,10 +21,12 @@ public class BrokerClientHandler implements Runnable {
 
     private volatile boolean shouldRun = true;
 
-    public BrokerClientHandler(Socket clientSocket, Map<String, Exchange> exchanges, Map<String, NamedQueue> queues) {
+    public BrokerClientHandler(Socket clientSocket, Map<String, Exchange> exchanges,
+            Map<String, NamedQueue> queues, Exchange defaultExchange) {
         this.clientSocket = clientSocket;
         this.exchanges = exchanges;
         this.queues = queues;
+        this.defaultExchange = defaultExchange;
         try {
             this.reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
@@ -84,8 +87,13 @@ public class BrokerClientHandler implements Runnable {
 
         String queueName = args[1];
 
-        this.writeToClient("ok");
         this.queue = this.queues.computeIfAbsent(queueName, NamedQueue::new);
+        this.bindToDefaultOnCreate(queueName, this.queue);
+        this.writeToClient("ok");
+    }
+
+    private void bindToDefaultOnCreate(String queueName, NamedQueue queue) {
+        this.defaultExchange.bind(queue, queueName);
     }
 
     private void handleExchange(String[] args) {
@@ -100,12 +108,11 @@ public class BrokerClientHandler implements Runnable {
         this.writeToClient("ok");
         switch (type) {
             case "fanout" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, FanoutExchange::new);
-            case "default" -> {
-            }
             case "direct" -> {
             }
             case "topic" -> {
             }
+            case "default" -> this.exchange = this.defaultExchange;
             default -> {
             }
         }

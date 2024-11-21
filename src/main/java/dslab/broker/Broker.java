@@ -32,6 +32,7 @@ public class Broker implements IBroker {
 
     private final Map<String, Exchange> exchanges = new ConcurrentHashMap<>();
     private final Map<String, NamedQueue> queues = new ConcurrentHashMap<>();
+    private final Exchange defaultExchange = new DefaultExchange("default");
 
     private final ExecutorService clientHandlerPool = Executors.newCachedThreadPool(); // Directly initialize here
 
@@ -60,7 +61,7 @@ public class Broker implements IBroker {
         Stream.generate(this::tryAcceptClient)
                 .takeWhile(clientSocket -> this.running)
                 .forEach(clientSocket -> clientSocket.ifPresent(socket -> {
-                    this.clientHandlerPool.submit(new BrokerClientHandler(socket, this.exchanges, this.queues));
+                    this.clientHandlerPool.submit(new BrokerClientHandler(socket, this.exchanges, this.queues, this.defaultExchange));
                 }));
     }
 
