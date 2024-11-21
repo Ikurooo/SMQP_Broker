@@ -108,8 +108,7 @@ public class BrokerClientHandler implements Runnable {
         this.writeToClient("ok");
         switch (type) {
             case "fanout" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, FanoutExchange::new);
-            case "direct" -> {
-            }
+            case "direct" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, DirectExchange::new);
             case "topic" -> {
             }
             case "default" -> this.exchange = this.defaultExchange;
