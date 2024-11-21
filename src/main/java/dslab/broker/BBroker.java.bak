@@ -5,7 +5,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,7 +13,27 @@ import java.util.stream.Stream;
 import dslab.ComponentFactory;
 import dslab.config.BrokerConfig;
 
-public class Broker implements IBroker {
+public class BBroker implements IBroker {
+
+//    @Override
+//    public void run() {
+//        this.registerWithDNS();
+//
+//        try {
+//            this.serverSocket = new ServerSocket(port);
+//            System.out.println("Broker is running. Listening for clients on port " + port);
+//
+//            Stream.generate(this::tryAcceptClient)
+//                    .takeWhile(clientSocket -> !Thread.interrupted())
+//                    .forEach(clientSocket -> clientSocket.ifPresent(socket -> {
+//                        BrokerClientHandler clientHandler = new BrokerClientHandler(socket, this.exchanges, this.queues);
+//                        this.clientHandlerPool.submit(clientHandler);
+//                    }));
+//
+//        } catch (IOException e) {
+//            System.err.println("Error: Unable to start broker:" + e.getCause() + ", " + e.getMessage());
+//        }
+//    }
 
     private final String componentId;
     private final String host;
@@ -33,58 +52,58 @@ public class Broker implements IBroker {
     private final Map<String, Exchange> exchanges = new ConcurrentHashMap<>();
     private final Map<String, NamedQueue> queues = new ConcurrentHashMap<>();
 
-    private final ExecutorService clientHandlerPool = Executors.newCachedThreadPool(); // Directly initialize here
+    private final ExecutorService clientHandlerPool = Executors.newCachedThreadPool();
 
-    private volatile boolean running;
-
-    public Broker(BrokerConfig config) {
+    public BBroker(BrokerConfig config) {
         this.componentId = config.componentId();
         this.host = config.host();
         this.port = config.port();
         this.domain = config.domain();
         this.dnsHost = config.dnsHost();
         this.dnsPort = config.dnsPort();
-        this.running = true;
+    }
+
+    @Override
+    public void run() {
+
+        this.registerWithDNS();
 
         try {
             this.serverSocket = new ServerSocket(port);
+
+            System.out.println("Broker is running. Listening for clients on port " + port);
+
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Socket clientSocket = this.serverSocket.accept();
+                    System.out.println("New client connected: " + clientSocket.getRemoteSocketAddress());
+
+                    BrokerClientHandler clientHandler = new BrokerClientHandler(clientSocket, this.exchanges, this.queues);
+                    this.clientHandlerPool.execute(clientHandler);
+
+                } catch (IOException e) {
+                    if (this.serverSocket.isClosed()) {
+                        System.out.println("Server socket closed. Stopping the broker.");
+                        break;
+                    }
+                    System.err.println("Error accepting client connection: " + e.getMessage());
+                }
+            }
+
         } catch (IOException e) {
             System.err.println("Error: Unable to start broker:" + e.getCause() + ", " + e.getMessage());
         }
     }
 
     @Override
-    public void run() {
-        System.out.println("Broker is running. Listening for clients on port " + port);
-        this.registerWithDNS();
-        Stream.generate(this::tryAcceptClient)
-                .takeWhile(clientSocket -> this.running)
-                .forEach(clientSocket -> clientSocket.ifPresent(socket -> {
-                    this.clientHandlerPool.submit(new BrokerClientHandler(socket, this.exchanges, this.queues));
-                }));
-    }
-
-    private Optional<Socket> tryAcceptClient() {
-        try {
-            return Optional.of(this.serverSocket.accept());
-        } catch (IOException e) {
-            System.err.println("Error accepting client connection: " + e.getMessage());
-            if (this.serverSocket.isClosed())
-                this.running = false;
-            return Optional.empty();
-        }
-    }
-
-    @Override
     public void shutdown() {
         System.out.println("Broker shutting down...");
-        this.running = false;
+        if (this.dnsReader != null && this.dnsWriter != null) {
+            deregisterWithDNS();
+        }
         this.clientHandlerPool.shutdownNow();
-
-        if (this.dnsReader != null && this.dnsWriter != null)
-            this.deregisterWithDNS();
-
         try {
+
             if (this.serverSocket != null && !this.serverSocket.isClosed())
                 this.serverSocket.close();
             if (this.dnsReader != null)
@@ -104,34 +123,34 @@ public class Broker implements IBroker {
             this.dnsSocket = new Socket(this.dnsHost, this.dnsPort);
             this.dnsReader = new BufferedReader(new InputStreamReader(this.dnsSocket.getInputStream()));
             this.dnsWriter = new BufferedWriter(new OutputStreamWriter(this.dnsSocket.getOutputStream()));
-
-            if (!"ok SDP".equals(this.readFromDNS())) {
-                System.err.println("Error: Failed to register with DNS.");
+            if (!Objects.equals(this.readFromDNS(), "ok SDP"))
                 return;
-            }
 
-            this.writeToDNS(String.format("register %s %s:%d", domain, host, port));
-
-            if (!"ok".equals(this.readFromDNS())) {
-                System.err.println("Error: Failed to register with DNS.");
+            String registerCommand = String.format("register %s %s:%d", domain, host, port);
+            this.writeToDNS(registerCommand);
+            String response = this.readFromDNS();
+            if (response == null || !response.equals("ok")) {
+                System.err.println("Error: Failed to register with DNS. Response: " + response);
             } else {
                 System.out.println("Successfully registered with DNS.");
             }
-
         } catch (IOException e) {
+            // skips registration with the DNS
             System.err.println("Failed to register with DNS");
         }
+
     }
 
     private void deregisterWithDNS() {
-        this.writeToDNS(String.format("unregister %s", domain));
-        if (!"ok".equals(this.readFromDNS())) {
-            System.err.println("Error: Failed to unregister from DNS.");
+        String unregisterCommand = String.format("unregister %s", domain);
+        this.writeToDNS(unregisterCommand);
+        String response = this.readFromDNS();
+        if (response == null || !response.equals("ok")) {
+            System.err.println("Error: Failed to unregister from DNS. Response: " + response);
         } else {
             System.out.println("Successfully unregistered from DNS.");
         }
     }
-
 
     private void writeToDNS(String message) {
         try {
@@ -152,6 +171,6 @@ public class Broker implements IBroker {
     }
 
     public static void main(String[] args) {
-        ComponentFactory.createBroker(args[0]).run(); // Start the broker
+        ComponentFactory.createBroker(args[0]).run();
     }
 }

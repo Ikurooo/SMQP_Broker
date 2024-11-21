@@ -30,6 +30,6 @@ class FanoutExchange implements Exchange {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 }

@@ -10,11 +10,11 @@ import java.util.Map;
 
 public class BrokerClientHandler implements Runnable {
 
-    private BufferedWriter writer;
-    private BufferedReader reader;
     private final Socket clientSocket;
     private final Map<String, Exchange> exchanges;
     private final Map<String, NamedQueue> queues;
+    private BufferedWriter writer;
+    private BufferedReader reader;
     private NamedQueue queue;
     private Exchange exchange;
 
@@ -29,32 +29,32 @@ public class BrokerClientHandler implements Runnable {
             this.writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         } catch (IOException e) {
             System.err.println("error: failed to initialize reader/writer for client.");
-            shouldRun = false;
+            this.shouldRun = false;
         }
     }
 
     @Override
     public void run() {
-        if (!shouldRun)
+        if (!this.shouldRun)
             return;
 
         this.writeToClient("ok SMQP");
         System.out.println("Client connected.");
 
-        while (shouldRun) {
+        while (this.shouldRun) {
             String line = this.readFromClient();
             if (line == null || line.isBlank())
                 continue;
             String[] command = line.split(" ");
 
             switch (command[0]) {
-                case "exchange" -> handleExchange(command);
-                case "queue" -> handleQueue(command);
-                case "publish" -> handlePublish(command);
-                case "exit" -> handleExit(command);
+                case "exchange" -> this.handleExchange(command);
+                case "queue" -> this.handleQueue(command);
+                case "publish" -> this.handlePublish(command);
+                case "exit" -> this.handleExit(command);
                 case "bind" -> this.handleBind(command);
-                case "subscribe" -> handleSubscribe(command);
-                default -> writeToClient("error: unknown command: " + command[0]);
+                case "subscribe" -> this.handleSubscribe(command);
+                default -> this.writeToClient("error: unknown command: " + command[0]);
             }
         }
     }
@@ -99,7 +99,7 @@ public class BrokerClientHandler implements Runnable {
 
         this.writeToClient("ok");
         switch (type) {
-            case "fanout" -> this.exchange = exchanges.computeIfAbsent(exchangeName, FanoutExchange::new);
+            case "fanout" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, FanoutExchange::new);
             case "default" -> {
             }
             case "direct" -> {
@@ -150,15 +150,15 @@ public class BrokerClientHandler implements Runnable {
 
     private void handleExit(String[] args) {
         if (args.length != 1) {
-            writeToClient("error: incorrect arguments. usage: exit");
+            this.writeToClient("error: incorrect arguments. usage: exit");
             return;
         }
-        shouldRun = false;
+        this.shouldRun = false;
 
         try {
-            reader.close();
-            writer.close();
-            clientSocket.close();
+            this.reader.close();
+            this.writer.close();
+            this.clientSocket.close();
             System.out.println("Client disconnected.");
         } catch (IOException e) {
             System.err.println("error: failed to close resources. " + e.getMessage());
