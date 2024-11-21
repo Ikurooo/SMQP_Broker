@@ -3,6 +3,7 @@ package dslab.broker;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 public class DirectExchange implements Exchange {
 
@@ -18,12 +19,8 @@ public class DirectExchange implements Exchange {
     }
 
     public void publish(String routingKey, String message) {
-        List<NamedQueue> queues = qs.get(routingKey);
-        if (queues != null) {
-            for (NamedQueue queue : queues) {
-                queue.enqueue(message); 
-            }
-        }
+        Optional.ofNullable(qs.get(routingKey))
+                .ifPresent(queues -> queues.forEach(queue -> queue.enqueue(message)));
     }
 
     public String getName() {
