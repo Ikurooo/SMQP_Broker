@@ -22,7 +22,7 @@ public class BrokerClientHandler implements Runnable {
     private volatile boolean shouldRun = true;
 
     public BrokerClientHandler(Socket clientSocket, Map<String, Exchange> exchanges,
-            Map<String, NamedQueue> queues, Exchange defaultExchange) {
+                               Map<String, NamedQueue> queues, Exchange defaultExchange) {
         this.clientSocket = clientSocket;
         this.exchanges = exchanges;
         this.queues = queues;
@@ -48,14 +48,15 @@ public class BrokerClientHandler implements Runnable {
             String line = this.readFromClient();
             if (line == null || line.isBlank())
                 continue;
+            System.out.println(line );
             String[] command = line.split(" ");
 
             switch (command[0]) {
-                case "exchange" -> this.handleExchange(command);
-                case "queue" -> this.handleQueue(command);
-                case "publish" -> this.handlePublish(command);
                 case "exit" -> this.handleExit(command);
                 case "bind" -> this.handleBind(command);
+                case "queue" -> this.handleQueue(command);
+                case "publish" -> this.handlePublish(command);
+                case "exchange" -> this.handleExchange(command);
                 case "subscribe" -> this.handleSubscribe(command);
                 default -> this.writeToClient("error: unknown command: " + command[0]);
             }
@@ -107,11 +108,10 @@ public class BrokerClientHandler implements Runnable {
 
         this.writeToClient("ok");
         switch (type) {
+            case "default" -> this.exchange = this.defaultExchange;
+            case "topic" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, TopicExchange::new);
             case "fanout" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, FanoutExchange::new);
             case "direct" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, DirectExchange::new);
-            case "topic" -> {
-            }
-            case "default" -> this.exchange = this.defaultExchange;
             default -> {
             }
         }
@@ -159,12 +159,17 @@ public class BrokerClientHandler implements Runnable {
             this.writeToClient("error: incorrect arguments. usage: exit");
             return;
         }
-        this.shouldRun = false;
 
         try {
-            this.reader.close();
-            this.writer.close();
-            this.clientSocket.close();
+            this.shouldRun = false;
+            if (this.writer != null) {
+                this.writeToClient("ok bye");
+                this.writer.close();
+            }
+            if (this.reader != null)
+                this.reader.close();
+            if (this.clientSocket != null && !this.clientSocket.isClosed())
+                this.clientSocket.close();
             System.out.println("Client disconnected.");
         } catch (IOException e) {
             System.err.println("error: failed to close resources. " + e.getMessage());
