@@ -3,10 +3,12 @@ package dslab.broker;
 public class TopicExchange implements Exchange {
 
     private final String name;
+    private final String type;
     private final Trie trie;
 
     public TopicExchange(String name) {
         this.name = name;
+        this.type = "topic";
         this.trie = new Trie();
     }
 
@@ -20,5 +22,10 @@ public class TopicExchange implements Exchange {
 
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getType() {
+        return this.type;
     }
 }

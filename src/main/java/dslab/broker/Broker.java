@@ -30,23 +30,27 @@ public class Broker implements IBroker {
     private BufferedWriter dnsWriter;
     private Socket dnsSocket;
 
-    private final Map<String, Exchange> exchanges = new ConcurrentHashMap<>();
-    private final Map<String, NamedQueue> queues = new ConcurrentHashMap<>();
-    private final Exchange defaultExchange = new DefaultExchange("default");
+    private final Map<String, Exchange> exchanges;
+    private final Map<String, NamedQueue> queues;
+    private final Exchange defaultExchange;
 
     private final ExecutorService clientHandlerPool = Executors.newCachedThreadPool(); // Directly initialize here
 
     private volatile boolean running;
 
     public Broker(BrokerConfig config) {
-        this.componentId = config.componentId();
+        this.running = true;
         this.host = config.host();
         this.port = config.port();
         this.domain = config.domain();
         this.dnsHost = config.dnsHost();
         this.dnsPort = config.dnsPort();
-        this.running = true;
+        this.componentId = config.componentId();
+        this.queues = new ConcurrentHashMap<>();
+        this.exchanges = new ConcurrentHashMap<>();
+        this.defaultExchange = new DefaultExchange("default");
 
+        this.exchanges.putIfAbsent("default", this.defaultExchange);
         try {
             this.serverSocket = new ServerSocket(port);
         } catch (IOException e) {

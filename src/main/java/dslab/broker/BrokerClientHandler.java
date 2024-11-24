@@ -48,7 +48,6 @@ public class BrokerClientHandler implements Runnable {
             String line = this.readFromClient();
             if (line == null || line.isBlank())
                 continue;
-            System.out.println(line );
             String[] command = line.split(" ");
 
             switch (command[0]) {
@@ -105,6 +104,11 @@ public class BrokerClientHandler implements Runnable {
 
         String type = args[1];
         String exchangeName = args[2];
+
+        if (this.exchanges.containsKey(exchangeName) && !this.exchanges.get(exchangeName).getType().equals(type)) {
+            this.writeToClient("error: exchange already exists under a different type.");
+            return;
+        }
 
         this.writeToClient("ok");
         switch (type) {
@@ -178,7 +182,6 @@ public class BrokerClientHandler implements Runnable {
 
     private void writeToClient(String message) {
         try {
-            System.out.println(message);
             this.writer.write(message + "\n");
             this.writer.flush();
         } catch (IOException e) {

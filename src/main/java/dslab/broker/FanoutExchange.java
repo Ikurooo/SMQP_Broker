@@ -4,11 +4,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 class FanoutExchange implements Exchange {
 
-    private final ConcurrentHashMap<String, NamedQueue> qs = new ConcurrentHashMap<>();
     private final String name;
+    private final String type;
+    private final ConcurrentHashMap<String, NamedQueue> qs;
 
     public FanoutExchange(String name) {
         this.name = name;
+        this.type = "fanout";
+        this.qs = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -23,5 +26,10 @@ class FanoutExchange implements Exchange {
 
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getType() {
+        return this.type;
     }
 }

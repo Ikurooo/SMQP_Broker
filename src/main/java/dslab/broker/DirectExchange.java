@@ -7,11 +7,14 @@ import java.util.Optional;
 
 public class DirectExchange implements Exchange {
 
-    private final ConcurrentHashMap<String, List<NamedQueue>> qs = new ConcurrentHashMap<>();
     private final String name;
+    private final String type;
+    private final ConcurrentHashMap<String, List<NamedQueue>> qs;
 
     public DirectExchange(String name) {
         this.name = name;
+        this.type = "direct";
+        this.qs = new ConcurrentHashMap<>();
     }
 
     public void bind(NamedQueue queue, String routingKey) {
@@ -25,5 +28,10 @@ public class DirectExchange implements Exchange {
 
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String getType() {
+        return this.type;
     }
 }
