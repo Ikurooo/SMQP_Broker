@@ -1,8 +1,8 @@
 package dslab.broker;
 
+import java.util.Stack;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Stack;
 
 public class Trie {
     public TrieNode root;

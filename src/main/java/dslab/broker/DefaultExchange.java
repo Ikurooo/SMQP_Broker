@@ -27,6 +27,7 @@ public class DefaultExchange implements Exchange {
         });
     }
 
+    @Override
     public String getName() {
         return this.name;
     }

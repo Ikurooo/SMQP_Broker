@@ -18,14 +18,13 @@ public class DNSServer implements IDNSServer {
     private volatile boolean isRunning;
 
     public DNSServer(DNSServerConfig config) {
-        int port = config.port();
+        this.isRunning = true;
+        this.threadPool = Executors.newWorkStealingPool();
         try {
-            this.serverSocket = new ServerSocket(port);
+            this.serverSocket = new ServerSocket(config.port());
         } catch (IOException e) {
             System.err.println("Couldn't start DNS server. " + e.getMessage());
         }
-        this.threadPool = Executors.newWorkStealingPool();
-        this.isRunning = true;
     }
 
     @Override
@@ -43,26 +42,22 @@ public class DNSServer implements IDNSServer {
             return Optional.of(serverSocket.accept());
         } catch (IOException e) {
             System.err.println("Server exception: " + e.getMessage());
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 
     @Override
     public void shutdown() {
         System.out.println("Shutting down DNS server...");
-        isRunning = false;
+        this.isRunning = false;
+        this.threadPool.shutdown();
 
         try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
-            }
+            if (this.serverSocket != null && !this.serverSocket.isClosed())
+                this.serverSocket.close();
         } catch (IOException e) {
             System.err.println("Error closing server socket: " + e.getMessage());
         }
-
-        System.out.println("Forcing shutdown of active threads...");
-        threadPool.shutdown();
-        System.out.println("DNS server shutdown completed.");
     }
 
     public static void main(String[] args) {

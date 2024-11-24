@@ -20,6 +20,7 @@ public class TopicExchange implements Exchange {
         this.trie.publish(routingKey.split("\\."), message);
     }
 
+    @Override
     public String getName() {
         return this.name;
     }

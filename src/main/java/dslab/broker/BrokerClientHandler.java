@@ -75,8 +75,8 @@ public class BrokerClientHandler implements Runnable {
 
         String routingKey = args[1];
 
-        this.writeToClient("ok");
         this.exchange.bind(this.queue, routingKey);
+        this.writeToClient("ok");
     }
 
     private void handleQueue(String[] args) {
@@ -110,7 +110,6 @@ public class BrokerClientHandler implements Runnable {
             return;
         }
 
-        this.writeToClient("ok");
         switch (type) {
             case "default" -> this.exchange = this.defaultExchange;
             case "topic" -> this.exchange = this.exchanges.computeIfAbsent(exchangeName, TopicExchange::new);
@@ -119,6 +118,8 @@ public class BrokerClientHandler implements Runnable {
             default -> {
             }
         }
+
+        this.writeToClient("ok");
     }
 
     private void handlePublish(String[] args) {
@@ -135,8 +136,8 @@ public class BrokerClientHandler implements Runnable {
         String routingKey = args[1];
         String message = args[2];
 
-        this.writeToClient("ok");
         this.exchange.publish(routingKey, message);
+        this.writeToClient("ok");
     }
 
     private void handleSubscribe(String[] args) {
@@ -150,9 +151,9 @@ public class BrokerClientHandler implements Runnable {
             return;
         }
 
-        this.writeToClient("ok");
         Subscription subscription = new Subscription(this.queue, this::writeToClient);
         subscription.start();
+        this.writeToClient("ok");
         this.readFromClient();
         subscription.interrupt();
         this.writeToClient("ok");

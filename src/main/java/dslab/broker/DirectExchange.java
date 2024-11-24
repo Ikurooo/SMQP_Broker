@@ -26,6 +26,7 @@ public class DirectExchange implements Exchange {
                 .ifPresent(queues -> queues.forEach(queue -> queue.enqueue(message)));
     }
 
+    @Override
     public String getName() {
         return this.name;
     }

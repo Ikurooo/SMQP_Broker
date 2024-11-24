@@ -1,14 +1,17 @@
 package dslab.broker;
 
-import java.io.*;
-import java.net.ServerSocket;
+import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.net.ServerSocket;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import dslab.ComponentFactory;
@@ -25,10 +28,6 @@ public class Broker implements IBroker {
     private final String domain;
     private final String dnsHost;
     private final int dnsPort;
-
-    private BufferedReader dnsReader;
-    private BufferedWriter dnsWriter;
-    private Socket dnsSocket;
 
     private final Map<String, Exchange> exchanges;
     private final Map<String, NamedQueue> queues;
@@ -74,8 +73,6 @@ public class Broker implements IBroker {
             return Optional.of(this.serverSocket.accept());
         } catch (IOException e) {
             System.err.println("Error accepting client connection: " + e.getMessage());
-            if (this.serverSocket.isClosed())
-                this.running = false;
             return Optional.empty();
         }
     }
@@ -85,20 +82,11 @@ public class Broker implements IBroker {
         System.out.println("Broker shutting down...");
         this.running = false;
         this.clientHandlerPool.shutdownNow();
-
-        if (this.dnsReader != null && this.dnsWriter != null)
-            this.deregisterWithDNS();
+        this.deregisterWithDNS();
 
         try {
             if (this.serverSocket != null && !this.serverSocket.isClosed())
                 this.serverSocket.close();
-            if (this.dnsReader != null)
-                this.dnsReader.close();
-            if (this.dnsWriter != null)
-                this.dnsWriter.close();
-            if (this.dnsSocket != null)
-                this.dnsSocket.close();
-
         } catch (IOException e) {
             System.err.println("Error: Failed to close resources. " + e.getMessage());
         }
@@ -106,50 +94,70 @@ public class Broker implements IBroker {
 
     private void registerWithDNS() {
         try {
-            this.dnsSocket = new Socket(this.dnsHost, this.dnsPort);
-            this.dnsReader = new BufferedReader(new InputStreamReader(this.dnsSocket.getInputStream()));
-            this.dnsWriter = new BufferedWriter(new OutputStreamWriter(this.dnsSocket.getOutputStream()));
+            Socket dnsSocket = new Socket(this.dnsHost, this.dnsPort);
+            BufferedReader dnsReader = new BufferedReader(new InputStreamReader(dnsSocket.getInputStream()));
+            BufferedWriter dnsWriter = new BufferedWriter(new OutputStreamWriter(dnsSocket.getOutputStream()));
 
-            if (!"ok SDP".equals(this.readFromDNS())) {
-                System.err.println("Error: Failed to register with DNS.");
+            if (!"ok SDP".equals(this.readFromDNS(dnsReader))) {
+                System.err.println("Error: Failed to deregister with DNS.");
                 return;
             }
 
-            this.writeToDNS(String.format("register %s %s:%d", domain, host, port));
+            this.writeToDNS(dnsWriter, String.format("register %s %s:%d", domain, host, port));
 
-            if (!"ok".equals(this.readFromDNS())) {
+            if (!"ok".equals(this.readFromDNS(dnsReader))) {
                 System.err.println("Error: Failed to register with DNS.");
             } else {
                 System.out.println("Successfully registered with DNS.");
             }
-
+            dnsWriter.close();
+            dnsReader.close();
+            if (!dnsSocket.isClosed())
+                dnsSocket.close();
         } catch (IOException e) {
             System.err.println("Failed to register with DNS");
         }
     }
 
     private void deregisterWithDNS() {
-        this.writeToDNS(String.format("unregister %s", domain));
-        if (!"ok".equals(this.readFromDNS())) {
-            System.err.println("Error: Failed to unregister from DNS.");
-        } else {
-            System.out.println("Successfully unregistered from DNS.");
+        try {
+            Socket dnsSocket = new Socket(this.dnsHost, this.dnsPort);
+            BufferedReader dnsReader = new BufferedReader(new InputStreamReader(dnsSocket.getInputStream()));
+            BufferedWriter dnsWriter = new BufferedWriter(new OutputStreamWriter(dnsSocket.getOutputStream()));
+
+            if (!"ok SDP".equals(this.readFromDNS(dnsReader))) {
+                System.err.println("Error: Failed to register with DNS.");
+                return;
+            }
+
+            this.writeToDNS(dnsWriter, String.format("unregister %s", domain));
+
+            if (!"ok".equals(this.readFromDNS(dnsReader))) {
+                System.err.println("Error: Failed to deregister from DNS.");
+            } else {
+                System.out.println("Successfully deregistered from DNS.");
+            }
+            dnsWriter.close();
+            dnsReader.close();
+            if (!dnsSocket.isClosed())
+                dnsSocket.close();
+        } catch (IOException e) {
+            System.err.println("Failed to deregister from DNS");
         }
     }
 
-
-    private void writeToDNS(String message) {
+    private void writeToDNS(BufferedWriter dnsWriter, String message) {
         try {
-            this.dnsWriter.write(message + "\n");
-            this.dnsWriter.flush();
+            dnsWriter.write(message + "\n");
+            dnsWriter.flush();
         } catch (IOException e) {
             System.err.println("Error: Failed writing to DNS. " + e.getMessage());
         }
     }
 
-    private String readFromDNS() {
+    private String readFromDNS(BufferedReader dnsReader) {
         try {
-            return this.dnsReader.readLine();
+            return dnsReader.readLine();
         } catch (IOException e) {
             System.err.println("Error: Failed reading from DNS. " + e.getMessage());
             return null;
@@ -157,6 +165,6 @@ public class Broker implements IBroker {
     }
 
     public static void main(String[] args) {
-        ComponentFactory.createBroker(args[0]).run(); // Start the broker
+        ComponentFactory.createBroker(args[0]).run();
     }
 }

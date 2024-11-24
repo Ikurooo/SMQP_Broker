@@ -24,6 +24,7 @@ class FanoutExchange implements Exchange {
         this.qs.forEach((key, value) -> value.enqueue(message));
     }
 
+    @Override
     public String getName() {
         return this.name;
     }
